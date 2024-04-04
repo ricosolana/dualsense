@@ -1,20 +1,18 @@
 # Sony DualSense Wireless Controller for PlayStation 5
 
-[Product page](https://www.playstation.com/en-us/accessories/dualsense-wireless-controller/)
+This is a fork aimed at better documentation and an extension of the parent project.
 
-[DualSense explorer tool](https://nondebug.github.io/dualsense/dualsense-explorer.html)
+For some reason, there is hardly any publicly available documentation regarding
+the Dualsense controller. I have scraped through multiple sources, including:
+- Google Android Dualsense driver
+- DualsenseX
+- Dualsense (Steam)
+- This project
 
-[c code](https://android.googlesource.com/kernel/msm.git/+/9882769164efdf1f2e1673bce4be1d1092ed89b2%5E%21/)
+[95% fleshed out explorer tool](https://PeriodicSeizures.github.io/dualsense/dualsense-explorer.html)
 
-Bluetooth output report map:
+[My highly detailed Dualsense HID protocol](https://PeriodicSeizures.github.io/dualsense/protocol.html)
 
-| Offset | Length | Name        | Description | Values                      |
-|--------|--------|-------------|-------------|-----------------------------|
-| 0      |        |             |             |                             |
-| 4      | 1      | Right motor |             |                             |
-| 5      | 1      | Left motor  |             |                             |
-|        |        |             |             |                             |
-| 10     | 1      | Mic LED     |             | 0: Off, 1: On, 2: Breathing |
-| 14     | 12     |             |             |                             |
-|        |        |             |             |                             |
+## Sources
+- Android Dualsense driver: https://android.googlesource.com/kernel/msm.git/+/9882769164efdf1f2e1673bce4be1d1092ed89b2%5E%21/
 
