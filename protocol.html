@@ -1,0 +1,514 @@
+<style type="text/css">
+.tg  {border-collapse:collapse;border-color:#9ABAD9;border-spacing:0;}
+.tg td{background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{background-color:#409cff;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#fff;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-hmp3{background-color:#D2E4FC;text-align:left;vertical-align:top}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-0lax">USB Offset</th>
+    <th class="tg-0lax">Bluetooth Offset</th>
+    <th class="tg-0lax">Common offset</th>
+    <th class="tg-0lax" colspan="2">Name</th>
+    <th class="tg-0lax">Values</th>
+    <th class="tg-0lax">Example Value</th>
+    <th class="tg-0lax">Notes</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-hmp3">0</td>
+    <td class="tg-hmp3">0</td>
+    <td class="tg-hmp3">-</td>
+    <td class="tg-hmp3" colspan="2">Report ID</td>
+    <td class="tg-hmp3">Bluetooth: 49<br>USB: 2</td>
+    <td class="tg-hmp3">49 = 0x31<br>2</td>
+    <td class="tg-hmp3">Field is always present and set for Bluetooth Dualsense<br>Field does not exist in USB Dualsense (Offset by -1)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">-</td>
+    <td class="tg-0lax">1</td>
+    <td class="tg-0lax">-</td>
+    <td class="tg-0lax" colspan="2">(Bluetooth) Sequence Tag<br></td>
+    <td class="tg-0lax">2</td>
+    <td class="tg-0lax">2</td>
+    <td class="tg-0lax">On Bluetooth, this field increments to 0xF then resets,<br>in the 4 most significant bits: 0bXXXX_0000</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">-</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3">-</td>
+    <td class="tg-hmp3" colspan="2">Bluetooth Magic Tag</td>
+    <td class="tg-hmp3">0x10</td>
+    <td class="tg-hmp3">0x10</td>
+    <td class="tg-hmp3">Dualsense-Explorer: Required, otherwise controller ignores packet<br>DSX: This value does not exist<br>Android: This value exists (https://github.com/nondebug/dualsense/blob/8652ab7b8f4bd00f0f98636ca96b404d0a3afd9b/dualsense-explorer.html#L903)<br><br>??? Why doesnt DSX use this magic tag?</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">1</td>
+    <td class="tg-0lax">2</td>
+    <td class="tg-0lax">0</td>
+    <td class="tg-0lax" colspan="2">(Flag0): Compatibility?</td>
+    <td class="tg-0lax">Compatible Vibration: 0bX1<br>Haptics Select: 0b1X</td>
+    <td class="tg-0lax">0b1100</td>
+    <td class="tg-0lax">Defined as feature select https://github.com/Ohjurot/DualSense-Windows/blob/0b869f4e34e4a6b608023a2f1e19bc28c037b64f/VS19_Solution/DualSenseWindows/src/DualSenseWindows/DS5_Output.cpp#L4<br>DSX sets 0b11 if USB haptic rumble mode, but audio is not actively playing. This likely avoids audio issues if mode changes.</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">2</td>
+    <td class="tg-hmp3">3</td>
+    <td class="tg-hmp3">1</td>
+    <td class="tg-hmp3" colspan="2">(Flag1): Feature Controls</td>
+    <td class="tg-hmp3">Mic Mute LED Control: 0bXXXX_XXX1<br>Power Save Control: 0bXXXX_XX1X<br>Lightbar Control: 0bXXXX_X1XX (Changes the current color)<br>Release LED's: 0bXXXX_1XXX (Turns off all LED's)<br>Player Indicator Control: 0bXXX1_XXXX<br>? Disable Rumble: 0bX1XX_XXXX<br>?: 0b11XX_XXXX</td>
+    <td class="tg-hmp3">0b0101_0101</td>
+    <td class="tg-hmp3">This mask likely exists for power optimizing?<br>DSX Enables Mic Mute LED, Lightbar, and Player LED's (0bXXX1_0101)<br>The 0b11XX_XXXX flag is unknown, but is always set, on both DSX and Dualsense-Explorer<br><br>Context clues lead me to believe that 0bX1XX_XXXX is Rumble Control<br>Proof: DSX enables this bit when Left/Right motor have non-zero values, otherwise unsets it.</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">3</td>
+    <td class="tg-0lax">4</td>
+    <td class="tg-0lax">2</td>
+    <td class="tg-0lax" colspan="2">Right motor</td>
+    <td class="tg-0lax">[0, 255]</td>
+    <td class="tg-0lax">0</td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">4</td>
+    <td class="tg-hmp3">5</td>
+    <td class="tg-hmp3">3</td>
+    <td class="tg-hmp3" colspan="2">Left motor</td>
+    <td class="tg-hmp3">[0, 255]</td>
+    <td class="tg-hmp3">0</td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">5</td>
+    <td class="tg-0lax">6</td>
+    <td class="tg-0lax">4</td>
+    <td class="tg-0lax" rowspan="4">Audio</td>
+    <td class="tg-0lax">Headset Volume</td>
+    <td class="tg-0lax">0 or [30, 127]</td>
+    <td class="tg-0lax">0</td>
+    <td class="tg-0lax" rowspan="4">(Audio Haptics USB Only)</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">6</td>
+    <td class="tg-hmp3">7</td>
+    <td class="tg-hmp3">5</td>
+    <td class="tg-hmp3">Speaker Volume</td>
+    <td class="tg-hmp3">0 or [61, 100]</td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">7</td>
+    <td class="tg-0lax">8</td>
+    <td class="tg-0lax">6</td>
+    <td class="tg-0lax">?</td>
+    <td class="tg-0lax">64</td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">8</td>
+    <td class="tg-hmp3">9</td>
+    <td class="tg-hmp3">7</td>
+    <td class="tg-hmp3">?</td>
+    <td class="tg-hmp3">108</td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">9</td>
+    <td class="tg-0lax">10</td>
+    <td class="tg-0lax">8</td>
+    <td class="tg-0lax" colspan="2">Mic Mute LED</td>
+    <td class="tg-0lax">0: Off, 1: On, 2: Breathing</td>
+    <td class="tg-0lax">0</td>
+    <td class="tg-0lax">Breathing is slow sinusoidal pulsing.</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">10</td>
+    <td class="tg-hmp3">11</td>
+    <td class="tg-hmp3">9</td>
+    <td class="tg-hmp3" colspan="2">Power Save Control</td>
+    <td class="tg-hmp3">Hardware MIC Mute: 0bXXX1_XXXX</td>
+    <td class="tg-hmp3">0</td>
+    <td class="tg-hmp3">https://android.googlesource.com/kernel/msm.git/+/9882769164efdf1f2e1673bce4be1d1092ed89b2%5E%21/</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">11</td>
+    <td class="tg-0lax">12</td>
+    <td class="tg-0lax">10</td>
+    <td class="tg-0lax" rowspan="11">Right Haptic Trigger</td>
+    <td class="tg-0lax">Effect Mode</td>
+    <td class="tg-0lax">1: Simple Resistance {1, start, force}<br>2: Trigger {2, start, end, force}<br>5: Reset {5}<br>6: Repeat Trigger {6, freq, strength, start}<br>17: Limited Resistance {17, start, force}<br>18: Limited Trigger {18, start, end, force}<br>33: Resistance {33, }<br>34: Bow {34, }<br>35: Galloping {35, }<br>37: Semi Automatic {37, }<br>38: Automatic {38, }<br>39: Machine {39, }</td>
+    <td class="tg-0lax">0</td>
+    <td class="tg-0lax">https://github.com/Etaash-mathamsetty/trigger-control/blob/18b1b8f31f4c8dc0c6aeb20d69cd7f475a479017/libtrigger-control/ds-trigger-control.h#L16<br><br>DSX(Steam) has even more trigger values defined.</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">12</td>
+    <td class="tg-hmp3">13</td>
+    <td class="tg-hmp3">11</td>
+    <td class="tg-hmp3">Effect Parameter 1</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3">0</td>
+    <td class="tg-hmp3" rowspan="10">Unused parameters are zero</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">13</td>
+    <td class="tg-0lax">14</td>
+    <td class="tg-0lax">12</td>
+    <td class="tg-0lax">Effect Parameter 2</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">14</td>
+    <td class="tg-hmp3">15</td>
+    <td class="tg-hmp3">13</td>
+    <td class="tg-hmp3">Effect Parameter 3</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">15</td>
+    <td class="tg-0lax">16</td>
+    <td class="tg-0lax">14</td>
+    <td class="tg-0lax">Effect Parameter 4</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">16</td>
+    <td class="tg-hmp3">17</td>
+    <td class="tg-hmp3">15</td>
+    <td class="tg-hmp3">Effect Parameter 5</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">17</td>
+    <td class="tg-0lax">18</td>
+    <td class="tg-0lax">16</td>
+    <td class="tg-0lax">Effect Parameter 6</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">18</td>
+    <td class="tg-hmp3">19</td>
+    <td class="tg-hmp3">17</td>
+    <td class="tg-hmp3">Effect Parameter 7</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">19</td>
+    <td class="tg-0lax">20</td>
+    <td class="tg-0lax">18</td>
+    <td class="tg-0lax">Effect Parameter 8</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">20</td>
+    <td class="tg-hmp3">21</td>
+    <td class="tg-hmp3">19</td>
+    <td class="tg-hmp3">Effect Parameter 9</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">21</td>
+    <td class="tg-0lax">22</td>
+    <td class="tg-0lax">20</td>
+    <td class="tg-0lax">Effect Parameter 10</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">22</td>
+    <td class="tg-hmp3">23</td>
+    <td class="tg-hmp3">21</td>
+    <td class="tg-hmp3" rowspan="11">Left Haptic Trigger</td>
+    <td class="tg-hmp3">Effect Mode</td>
+    <td class="tg-hmp3" rowspan="11">(same)</td>
+    <td class="tg-hmp3">0</td>
+    <td class="tg-hmp3" rowspan="11">(same)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">23</td>
+    <td class="tg-0lax">24</td>
+    <td class="tg-0lax">22</td>
+    <td class="tg-0lax">Effect Parameter 1</td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">24</td>
+    <td class="tg-hmp3">25</td>
+    <td class="tg-hmp3">23</td>
+    <td class="tg-hmp3">Effect Parameter 2</td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">25</td>
+    <td class="tg-0lax">26</td>
+    <td class="tg-0lax">24</td>
+    <td class="tg-0lax">Effect Parameter 3</td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">26</td>
+    <td class="tg-hmp3">27</td>
+    <td class="tg-hmp3">25</td>
+    <td class="tg-hmp3">Effect Parameter 4</td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">27</td>
+    <td class="tg-0lax">28</td>
+    <td class="tg-0lax">26</td>
+    <td class="tg-0lax">Effect Parameter 5</td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">28</td>
+    <td class="tg-hmp3">29</td>
+    <td class="tg-hmp3">27</td>
+    <td class="tg-hmp3">Effect Parameter 6</td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">29</td>
+    <td class="tg-0lax">30</td>
+    <td class="tg-0lax">28</td>
+    <td class="tg-0lax">Effect Parameter 7</td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">30</td>
+    <td class="tg-hmp3">31</td>
+    <td class="tg-hmp3">29</td>
+    <td class="tg-hmp3">Effect Parameter 8</td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">31</td>
+    <td class="tg-0lax">32</td>
+    <td class="tg-0lax">30</td>
+    <td class="tg-0lax">Effect Parameter 9</td>
+    <td class="tg-0lax">0</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">32</td>
+    <td class="tg-hmp3">33</td>
+    <td class="tg-hmp3">31</td>
+    <td class="tg-hmp3">Effect Parameter 10</td>
+    <td class="tg-hmp3">0</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">33</td>
+    <td class="tg-0lax">34</td>
+    <td class="tg-0lax">32</td>
+    <td class="tg-0lax" colspan="2">?</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">34</td>
+    <td class="tg-hmp3">35</td>
+    <td class="tg-hmp3">33</td>
+    <td class="tg-hmp3" colspan="2">?</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">35</td>
+    <td class="tg-0lax">36</td>
+    <td class="tg-0lax">34</td>
+    <td class="tg-0lax" colspan="2">?</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">36</td>
+    <td class="tg-hmp3">37</td>
+    <td class="tg-hmp3">35</td>
+    <td class="tg-hmp3" colspan="2">?</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">37</td>
+    <td class="tg-0lax">38</td>
+    <td class="tg-0lax">36</td>
+    <td class="tg-0lax" colspan="2">Rumble Intensity</td>
+    <td class="tg-0lax">[0, 7]: Reversed; 7 is low strength, 0 is high strength</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">38</td>
+    <td class="tg-hmp3">39</td>
+    <td class="tg-hmp3">37</td>
+    <td class="tg-hmp3" colspan="2">?</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">39</td>
+    <td class="tg-0lax">40</td>
+    <td class="tg-0lax">38</td>
+    <td class="tg-0lax" colspan="2">(Flag2)<br>Player LED Brightness, <br>Enhanced Rumble</td>
+    <td class="tg-0lax">? 0bXX1: Enable LED<br>0bX1X: Lightbar setup<br>? 0b1XX: Enhanced Rumble</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax">0bX11 Is always set on DSX; Enhanced Rumble (0b1XX) is optional<br>Set to 0bX1X for startup breathing animation.<br><br>Lightbar will be blue if lightbar setup is not set. If this happens,<br>lightbar must be reset by disabling LED's (Flag1 : set Release LED's), <br>then reenabling (Flag1 : unset Release LED's)</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">40</td>
+    <td class="tg-hmp3">41</td>
+    <td class="tg-hmp3">39</td>
+    <td class="tg-hmp3" colspan="2">?</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">41</td>
+    <td class="tg-0lax">42</td>
+    <td class="tg-0lax">40</td>
+    <td class="tg-0lax" colspan="2">?</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">42</td>
+    <td class="tg-hmp3">43</td>
+    <td class="tg-hmp3">41</td>
+    <td class="tg-hmp3" colspan="2">Lightbar Setup</td>
+    <td class="tg-hmp3">0b01: Disable, 0b10: Enable</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3">Set to 0bX1X for startup breathing animation.<br>DSX disables lightbar (1) until three seconds after connecting. Then set to 2.<br><br>TODO test if these states are strictly exclusive; i.e., whether 0b10 is required for enabled, vs the lack of 0b01 to explicitly disable.</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">43</td>
+    <td class="tg-0lax">44</td>
+    <td class="tg-0lax">42</td>
+    <td class="tg-0lax" colspan="2">Player Mute LED Brightness</td>
+    <td class="tg-0lax">Low: 2, Medium: 1, High: 0</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">44</td>
+    <td class="tg-hmp3">45</td>
+    <td class="tg-hmp3">43</td>
+    <td class="tg-hmp3" colspan="2">Players LED Mask</td>
+    <td class="tg-hmp3">[0b00000, 0b11111]</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">45</td>
+    <td class="tg-0lax">46</td>
+    <td class="tg-0lax">44</td>
+    <td class="tg-0lax" colspan="2">Touchpad Red Color</td>
+    <td class="tg-0lax">[0, 255]</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax">DSX sets lights to full intensity (ds4) or varied intensity (ds5).</td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">46</td>
+    <td class="tg-hmp3">47</td>
+    <td class="tg-hmp3">45</td>
+    <td class="tg-hmp3" colspan="2">Touchpad Green Color</td>
+    <td class="tg-hmp3">[0, 255]</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">47</td>
+    <td class="tg-0lax">48</td>
+    <td class="tg-0lax">46</td>
+    <td class="tg-0lax" colspan="2">Touchpad Blue Color</td>
+    <td class="tg-0lax">[0, 255]</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">48</td>
+    <td class="tg-hmp3">49</td>
+    <td class="tg-hmp3">47</td>
+    <td class="tg-hmp3" rowspan="2">Dualsense Edge</td>
+    <td class="tg-hmp3">?</td>
+    <td class="tg-hmp3">If Dualsense Edge: 1</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">49</td>
+    <td class="tg-0lax">50</td>
+    <td class="tg-0lax">48</td>
+    <td class="tg-0lax">? Profile</td>
+    <td class="tg-0lax">0b1X: Is internal profile switching haptics toggled?<br>0bX1: Is internal profile switching LED toggled?</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">50</td>
+    <td class="tg-hmp3">51</td>
+    <td class="tg-hmp3">49</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">51</td>
+    <td class="tg-0lax">52</td>
+    <td class="tg-0lax">50</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">52</td>
+    <td class="tg-hmp3">53</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">53</td>
+    <td class="tg-0lax">54</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  <tr>
+    <td class="tg-hmp3">54</td>
+    <td class="tg-hmp3">55</td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+    <td class="tg-hmp3"></td>
+  </tr>
+</tbody>
+</table>
