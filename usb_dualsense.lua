@@ -6,6 +6,11 @@
 --  controller -> host
 --      (_ws.col.info == "URB_INTERRUPT in") && (usb.dst == "host") && (usb.bInterfaceClass == 0x03)
 --
+-- This will NOT work for Bluetooth (encrypted)
+--
+-- Tutorial I used:
+--  https://mika-s.github.io/wireshark/lua/dissector/usb/2019/07/23/creating-a-wireshark-usb-dissector-in-lua-1.html
+--
 -- Written by crazicrafter1
 
 usb_dualsense_protocol = Proto('USB_dualsense',  'USB Dualsense protocol')
@@ -60,79 +65,84 @@ usb_dualsense_protocol.fields = {
     left_adaptive_mode, left_adaptive_0, left_adaptive_1, left_adaptive_2, left_adaptive_3, left_adaptive_4, left_adaptive_5, left_adaptive_6, left_adaptive_7, left_adaptive_8, left_adaptive_9,
 }
 
+local parse_common = function(buffer, subtree)
+    subtree:add_le(flag0, buffer(0, 1))
+    subtree:add_le(flag1, buffer(1, 1))
+
+    local motor_tree = subtree:add(usb_dualsense_protocol, buffer(2, 2), 'Rumblers')
+    motor_tree:add_le(right_motor, buffer(2, 1))
+    motor_tree:add_le(left_motor, buffer(3, 1))
+
+
+
+    local headset_volume_buffer = buffer(4, 1)
+    local headset_volume_v = headset_volume_buffer:le_uint()
+    local headset_volume_s
+    if headset_volume_v > 0 then
+        headset_volume_s = tostring(math.floor((headset_volume_v - 30) / (127 - 30))) .. '%'
+    else
+        headset_volume_s = 'Muted'
+    end
+
+    local speaker_volume_buffer = buffer(5, 1)
+    local speaker_volume_v = headset_volume_buffer:le_uint()
+    local speaker_volume_s
+    if speaker_volume_v > 0 then
+        speaker_volume_s = tostring(math.floor((speaker_volume_v - 61) / (100 - 61))) .. '%'
+    else
+        speaker_volume_s = 'Muted'
+    end
+
+    local audio_tree = subtree:add(usb_dualsense_protocol, buffer(5, 4), 'Audio (' .. headset_volume_s .. ', ' .. speaker_volume_s .. ')')
+    audio_tree:add_le(headset_volume, headset_volume_buffer) --, tostring(headset_volume_v) .. '(' .. headset_volume_s .. ')')
+    audio_tree:add_le(speaker_volume, speaker_volume_buffer)
+    audio_tree:add_le(audio3, buffer(6, 1))
+    audio_tree:add_le(audio4, buffer(7, 1))
+
+
+
+    subtree:add_le(mic_mute_led, buffer(8, 1))
+
+    subtree:add_le(power_save_control, buffer(9, 1))
+
+    local right_adaptive_tree = subtree:add(usb_dualsense_protocol, buffer(10, 11), 'Right Adaptive Trigger Data')
+    right_adaptive_tree:add_le(right_adaptive_mode, buffer(10, 1))
+    right_adaptive_tree:add_le(right_adaptive_0, buffer(11, 1))
+    right_adaptive_tree:add_le(right_adaptive_1, buffer(12, 1))
+    right_adaptive_tree:add_le(right_adaptive_2, buffer(13, 1))
+    right_adaptive_tree:add_le(right_adaptive_3, buffer(14, 1))
+    right_adaptive_tree:add_le(right_adaptive_4, buffer(15, 1))
+    right_adaptive_tree:add_le(right_adaptive_5, buffer(16, 1))
+    right_adaptive_tree:add_le(right_adaptive_6, buffer(17, 1))
+    right_adaptive_tree:add_le(right_adaptive_7, buffer(18, 1))
+    right_adaptive_tree:add_le(right_adaptive_8, buffer(19, 1))
+    right_adaptive_tree:add_le(right_adaptive_9, buffer(20, 1))
+
+    local left_adaptive_tree = subtree:add(usb_dualsense_protocol, buffer(21, 11), 'Left Adaptive Trigger Data')
+    left_adaptive_tree:add_le(left_adaptive_mode, buffer(21, 1))
+    left_adaptive_tree:add_le(left_adaptive_0, buffer(22, 1))
+    left_adaptive_tree:add_le(left_adaptive_1, buffer(23, 1))
+    left_adaptive_tree:add_le(left_adaptive_2, buffer(24, 1))
+    left_adaptive_tree:add_le(left_adaptive_3, buffer(25, 1))
+    left_adaptive_tree:add_le(left_adaptive_4, buffer(26, 1))
+    left_adaptive_tree:add_le(left_adaptive_5, buffer(27, 1))
+    left_adaptive_tree:add_le(left_adaptive_6, buffer(28, 1))
+    left_adaptive_tree:add_le(left_adaptive_7, buffer(29, 1))
+    left_adaptive_tree:add_le(left_adaptive_8, buffer(30, 1))
+    left_adaptive_tree:add_le(left_adaptive_9, buffer(31, 1))
+end
+
 function usb_dualsense_protocol.dissector(buffer, pinfo, tree)
-  local length = buffer:len()
-  if length == 0 then return end
+    local length = buffer:len()
+    if length == 0 then return end
 
-  pinfo.cols.protocol = usb_dualsense_protocol.name
+    pinfo.cols.protocol = usb_dualsense_protocol.name
 
-  local subtree = tree:add(usb_dualsense_protocol, buffer(), 'USB Dualsense Data')
-  
-  subtree:add_le(report_id, buffer(0, 1))
-  subtree:add_le(flag0, buffer(1, 1))
-  subtree:add_le(flag1, buffer(2, 1))
-  
-  local motor_tree = subtree:add(usb_dualsense_protocol, buffer(3, 2), 'Rumblers')
-  motor_tree:add_le(right_motor, buffer(3, 1))
-  motor_tree:add_le(left_motor, buffer(4, 1))
+    local subtree = tree:add(usb_dualsense_protocol, buffer(), 'USB Dualsense Data')
 
+    subtree:add_le(report_id, buffer(0, 1))
 
-
-  local headset_volume_buffer = buffer(5, 1)
-  local headset_volume_v = headset_volume_buffer:le_uint()
-  local headset_volume_s
-  if headset_volume_v > 0 then
-    headset_volume_s = tostring(math.floor((headset_volume_v - 30) / (127 - 30))) .. '%'
-  else
-    headset_volume_s = 'Muted'
-  end
-
-  local speaker_volume_buffer = buffer(6, 1)
-  local speaker_volume_v = headset_volume_buffer:le_uint()
-  local speaker_volume_s
-  if speaker_volume_v > 0 then
-    speaker_volume_s = tostring(math.floor((speaker_volume_v - 61) / (100 - 61))) .. '%'
-  else
-    speaker_volume_s = 'Muted'
-  end
-
-  local audio_tree = subtree:add(usb_dualsense_protocol, buffer(5, 4), 'Audio (' .. headset_volume_s .. ', ' .. speaker_volume_s .. ')')
-  audio_tree:add_le(headset_volume, headset_volume_buffer) --, tostring(headset_volume_v) .. '(' .. headset_volume_s .. ')')
-  audio_tree:add_le(speaker_volume, speaker_volume_buffer)
-  audio_tree:add_le(audio3, buffer(7, 1))
-  audio_tree:add_le(audio4, buffer(8, 1))
-
-
-
-  subtree:add_le(mic_mute_led, buffer(9, 1))
-
-  subtree:add_le(power_save_control, buffer(10, 1))
-
-  local right_adaptive_tree = subtree:add(usb_dualsense_protocol, buffer(11, 11), 'Right Adaptive Trigger Data')
-  right_adaptive_tree:add_le(right_adaptive_mode, buffer(11, 1))
-  right_adaptive_tree:add_le(right_adaptive_0, buffer(12, 1))
-  right_adaptive_tree:add_le(right_adaptive_1, buffer(13, 1))
-  right_adaptive_tree:add_le(right_adaptive_2, buffer(14, 1))
-  right_adaptive_tree:add_le(right_adaptive_3, buffer(15, 1))
-  right_adaptive_tree:add_le(right_adaptive_4, buffer(16, 1))
-  right_adaptive_tree:add_le(right_adaptive_5, buffer(17, 1))
-  right_adaptive_tree:add_le(right_adaptive_6, buffer(18, 1))
-  right_adaptive_tree:add_le(right_adaptive_7, buffer(19, 1))
-  right_adaptive_tree:add_le(right_adaptive_8, buffer(20, 1))
-  right_adaptive_tree:add_le(right_adaptive_9, buffer(21, 1))
-
-  local left_adaptive_tree = subtree:add(usb_dualsense_protocol, buffer(22, 11), 'Left Adaptive Trigger Data')
-  left_adaptive_tree:add_le(left_adaptive_mode, buffer(22, 1))
-  left_adaptive_tree:add_le(left_adaptive_0, buffer(23, 1))
-  left_adaptive_tree:add_le(left_adaptive_1, buffer(24, 1))
-  left_adaptive_tree:add_le(left_adaptive_2, buffer(25, 1))
-  left_adaptive_tree:add_le(left_adaptive_3, buffer(26, 1))
-  left_adaptive_tree:add_le(left_adaptive_4, buffer(27, 1))
-  left_adaptive_tree:add_le(left_adaptive_5, buffer(28, 1))
-  left_adaptive_tree:add_le(left_adaptive_6, buffer(29, 1))
-  left_adaptive_tree:add_le(left_adaptive_7, buffer(30, 1))
-  left_adaptive_tree:add_le(left_adaptive_8, buffer(31, 1))
-  left_adaptive_tree:add_le(left_adaptive_9, buffer(32, 1))
+    parse_common(buffer(1), subtree)
 end
 
 DissectorTable.get('usb.interrupt'):add(0xffff, usb_dualsense_protocol)
