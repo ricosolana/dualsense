@@ -15,8 +15,20 @@
 
 usb_dualsense_protocol = Proto('USB_dualsense',  'USB Dualsense protocol')
 
-local report_id   = ProtoField.uint8('usb_dualsense.report_id', 'Report ID', base.DEC)
-local flag0 = ProtoField.uint8('usb_dualsense.flag0', 'Feature Compatibility', base.DEC)
+
+
+local flag0_types = {
+    [0] = 'No',
+    [3] = 'Vibration',
+    [4] = 'Right Adaptive Trigger',
+    [8] = 'Left Adaptive Trigger',
+}
+
+
+
+
+local report_id = ProtoField.uint8('usb_dualsense.report_id', 'Report ID', base.DEC)
+local flag0 = ProtoField.uint8('usb_dualsense.flag0', 'Feature Compatibility', base.DEC, flag0_types, 255)
 local flag1 = ProtoField.uint8('usb_dualsense.flag1', 'Feature Controls', base.DEC)
 
 local right_motor = ProtoField.uint8('usb_dualsense.right_motor', 'Right Rumbler', base.DEC)
@@ -68,7 +80,10 @@ local lightbar_green = ProtoField.uint8('usb_dualsense.lightbar_green', 'Green',
 local lightbar_blue = ProtoField.uint8('usb_dualsense.lightbar_blue', 'Blue', base.DEC)
 
 usb_dualsense_protocol.fields = { 
-    report_id, flag0, flag1, 
+    -- usb header
+    report_id, 
+    -- common
+    flag0, flag1, 
     right_motor, left_motor,
     headset_volume, speaker_volume, audio3, audio4,
     mic_mute_led,
@@ -82,6 +97,8 @@ usb_dualsense_protocol.fields = {
     player_leds,
     lightbar_red, lightbar_green, lightbar_blue,
 }
+
+
 
 local parse_common = function(buffer, subtree)
     subtree:add_le(flag0, buffer(0, 1))
@@ -183,4 +200,6 @@ function usb_dualsense_protocol.dissector(buffer, pinfo, tree)
     parse_common(buffer(1), subtree)
 end
 
-DissectorTable.get('usb.interrupt'):add(0xffff, usb_dualsense_protocol)
+local usb_table = DissectorTable.get('usb.interrupt')
+usb_table:add(0x0003, usb_dualsense_protocol) -- HID (DS4Windows, )
+usb_table:add(0xffff, usb_dualsense_protocol) -- Unknown (Haptic Composer, )
