@@ -111,8 +111,8 @@ Connection type: <input type="text" id="connectiontype" style="width:100;" disab
 <output>0</output><input type="range" id="leftMotor" class="range-value" min="0" max="255" value="0">Left motor<br />
 
 <h4>Audio</h4>
-<output>0</output><input type="range" id="audio0 advanced" class="audio advanced range-value" min="30" max="127" />Headset Volume<br />
-<output>0</output><input type="range" id="audio1 advanced" class="audio advanced range-value" min="61" max="100" />Speaker Volume<br />
+<output>0</output><input type="range" id="audio0" class="audio advanced range-value" min="30" max="127" />Headset Volume<br />
+<output>0</output><input type="range" id="audio1" class="audio advanced range-value" min="61" max="100" />Speaker Volume<br />
 <input type="text" id="audio2" class="audio advanced" style="text-align:right; width:50;" value="0" /> Unknown 1<br />
 <input type="text" id="audio3" class="audio advanced" style="text-align:right; width:50;" value="0" /> Unknown 2<br />
 
@@ -501,7 +501,7 @@ class DualSenseHid {
       this.leftMotor = e.target.value;
     });
     
-    $('#audio0').on('input', e => {
+    $('.audio').on('input', e => {
       this.audio0Headset = audio0Slider.value;
       this.audio1Speaker = audio1Slider.value;
       this.audio2 = audio2Text.value;
