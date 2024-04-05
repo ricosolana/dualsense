@@ -55,6 +55,18 @@ local left_adaptive_7 = ProtoField.uint8('usb_dualsense.left_adaptive_7', 'Left 
 local left_adaptive_8 = ProtoField.uint8('usb_dualsense.left_adaptive_8', 'Left Adaptive Trigger Parameter[8]', base.DEC)
 local left_adaptive_9 = ProtoField.uint8('usb_dualsense.left_adaptive_9', 'Left Adaptive Trigger Parameter[9]', base.DEC)
 
+local rumble_intensity = ProtoField.uint8('usb_dualsense.rumble_intensity', 'Rumble Intensity', base.DEC)
+
+local flag2 = ProtoField.uint8('usb_dualsense.flag2', 'Flag2', base.DEC)
+
+local lightbar_setup = ProtoField.uint8('usb_dualsense.lightbar_setup', 'Lightbar Setup', base.DEC)
+local mic_mute_brightness = ProtoField.uint8('usb_dualsense.mic_mute_brightness', 'Mic Mute Brightness', base.DEC)
+local player_leds = ProtoField.uint8('usb_dualsense.player_leds', 'Player LED\'s', base.DEC)
+
+local lightbar_red = ProtoField.uint8('usb_dualsense.lightbar_red', 'Red', base.DEC)
+local lightbar_green = ProtoField.uint8('usb_dualsense.lightbar_green', 'Green', base.DEC)
+local lightbar_blue = ProtoField.uint8('usb_dualsense.lightbar_blue', 'Blue', base.DEC)
+
 usb_dualsense_protocol.fields = { 
     report_id, flag0, flag1, 
     right_motor, left_motor,
@@ -63,6 +75,12 @@ usb_dualsense_protocol.fields = {
     power_save_control,
     right_adaptive_mode, right_adaptive_0, right_adaptive_1, right_adaptive_2, right_adaptive_3, right_adaptive_4, right_adaptive_5, right_adaptive_6, right_adaptive_7, right_adaptive_8, right_adaptive_9,
     left_adaptive_mode, left_adaptive_0, left_adaptive_1, left_adaptive_2, left_adaptive_3, left_adaptive_4, left_adaptive_5, left_adaptive_6, left_adaptive_7, left_adaptive_8, left_adaptive_9,
+    rumble_intensity,
+    flag2,
+    lightbar_setup,
+    mic_mute_brightness,
+    player_leds,
+    lightbar_red, lightbar_green, lightbar_blue,
 }
 
 local parse_common = function(buffer, subtree)
@@ -94,7 +112,7 @@ local parse_common = function(buffer, subtree)
     end
 
     local audio_tree = subtree:add(usb_dualsense_protocol, buffer(5, 4), 'Audio (' .. headset_volume_s .. ', ' .. speaker_volume_s .. ')')
-    audio_tree:add_le(headset_volume, headset_volume_buffer) --, tostring(headset_volume_v) .. '(' .. headset_volume_s .. ')')
+    audio_tree:add_le(headset_volume, headset_volume_buffer)
     audio_tree:add_le(speaker_volume, speaker_volume_buffer)
     audio_tree:add_le(audio3, buffer(6, 1))
     audio_tree:add_le(audio4, buffer(7, 1))
@@ -130,6 +148,26 @@ local parse_common = function(buffer, subtree)
     left_adaptive_tree:add_le(left_adaptive_7, buffer(29, 1))
     left_adaptive_tree:add_le(left_adaptive_8, buffer(30, 1))
     left_adaptive_tree:add_le(left_adaptive_9, buffer(31, 1))
+
+    subtree:add_le(rumble_intensity, buffer(36, 1))
+    subtree:add_le(flag2, buffer(39, 1))
+    subtree:add_le(lightbar_setup, buffer(41, 1))
+    subtree:add_le(mic_mute_brightness, buffer(42, 1))
+    subtree:add_le(player_leds, buffer(43, 1))
+
+    local lightbar_color_buffer = buffer(44, 3)
+    --local lightbar_red_buffer = buffer(44, 1)
+    --local lightbar_green_buffer = buffer(45, 1)
+    --local lightbar_blue_buffer = buffer(46, 1)
+    local lightbar_color_s = '#' .. lightbar_color_buffer:bytes():tohex()
+    --local lightbar_color_s = lightbar_red_buffer:bytes():tohex() .. lightbar_red_buffer:bytes():tohex() .. lightbar_red_buffer:bytes():tohex()
+    local lightbar_color_tree = subtree:add(usb_dualsense_protocol, lightbar_color_buffer, 'Lightbar Color (' .. lightbar_color_s .. ')')
+    --lightbar_color:add_le(lightbar_red, lightbar_red_buffer)
+    --lightbar_color:add_le(lightbar_green, lightbar_green_buffer)
+    --lightbar_color:add_le(lightbar_blue, lightbar_blue_buffer)
+    lightbar_color_tree:add_le(lightbar_blue, lightbar_color_buffer(0, 1))
+    lightbar_color_tree:add_le(lightbar_blue, lightbar_color_buffer(1, 1))
+    lightbar_color_tree:add_le(lightbar_blue, lightbar_color_buffer(2, 1))
 end
 
 function usb_dualsense_protocol.dissector(buffer, pinfo, tree)
