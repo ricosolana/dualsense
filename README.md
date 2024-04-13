@@ -24,3 +24,46 @@ the Dualsense controller. I have scraped through multiple sources, including:
 ## Sources
 - Android Dualsense driver: https://android.googlesource.com/kernel/msm.git/+/9882769164efdf1f2e1673bce4be1d1092ed89b2%5E%21/
 
+
+## Getting haptics to work on PC
+
+System Sounds -> Playback
+    Right-Click on Wireless Controller
+    
+    Properties -> Enhancements
+    
+    Select Speaker Fill Checkbox
+    
+    Is that option missing?
+        Bottom Left, Configure
+
+        Setup Surround Sound, 4 channels
+        
+    Now check enhancements again
+    
+    Still missing?
+    
+    Unplug and replug your controller
+    
+    Still missing?
+    
+    Restart system sounds
+    
+    Still missing?
+    
+    rESTART YOUR CompuTER
+    
+    Still missing?
+    
+    Hmm, out of luck.
+    
+You should hear something faint from the controller when doing a sound test
+
+Open Firefox,
+
+Play Blade Runner 2049
+
+Turn the volume up
+
+You should feel and might hear something.
+
