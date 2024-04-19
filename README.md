@@ -24,6 +24,14 @@ the Dualsense controller. I have scraped through multiple sources, including:
 ## Sources
 - Android Dualsense driver: https://android.googlesource.com/kernel/msm.git/+/9882769164efdf1f2e1673bce4be1d1092ed89b2%5E%21/
 
+## Wireshark
+    Filter to relevant USB packets only
+
+    // host -> controller
+    (_ws.col.info == "URB_INTERRUPT out") && (usb.src == "host")
+
+    // controller -> host
+    ((_ws.col.info == "URB_INTERRUPT in") && (usb.dst == "host")) && (usb.bInterfaceClass == 0x03)
 
 ## Getting haptics to work on PC
 
@@ -59,7 +67,7 @@ System Sounds -> Playback
     
 You should hear something faint from the controller when doing a sound test
 
-Open Firefox,
+Open Firefox (it sesm to be the only one which works for this),
 
 Play Blade Runner 2049
 
