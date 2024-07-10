@@ -9,9 +9,9 @@ the Dualsense controller. I have scraped through multiple sources, including:
 - Dualsense (Steam)
 - This project
 
-[95% fleshed out explorer tool](https://PeriodicSeizures.github.io/dualsense/dualsense-explorer.html)
+[95% fleshed out explorer tool](https://ricosolana.github.io/dualsense/dualsense-explorer.html)
 
-[My highly detailed Dualsense HID protocol](https://PeriodicSeizures.github.io/dualsense/protocol.html)
+[My highly detailed Dualsense HID protocol](https://ricosolana.github.io/dualsense/protocol.html)
 
 ## Findings
 - Accurate/Legacy rumble:
