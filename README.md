@@ -24,6 +24,7 @@ the Dualsense controller. I have scraped through multiple sources, including:
 ## Sources
 - Android Dualsense driver: https://android.googlesource.com/kernel/msm.git/+/9882769164efdf1f2e1673bce4be1d1092ed89b2%5E%21/
 - Dualsense Edge profile: https://github.com/steffalon/dualsense-edge-profile-web-application/blob/main/src/helper/bytesToProfile.ts
+  - How profiles are retrieved from device (HID feature reports) https://github.com/steffalon/dualsense-edge-profile-web-application/blob/3b9244d5ca0e7caf333a1f1da573ddb9e591b3b0/src/App.vue#L25
 
 ## Wireshark
     Filter to relevant USB packets only
